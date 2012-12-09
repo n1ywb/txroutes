@@ -63,48 +63,48 @@ class Dispatcher(Resource):
     def __init__(self):
         Resource.__init__(self)
 
-        self.__path = ['']
+        self._path = ['']
 
-        self.__controllers = {}
-        self.__mapper = routes.Mapper()
+        self._controllers = {}
+        self._mapper = routes.Mapper()
 
     def connect(self, name, route, controller, **kwargs):
-        self.__controllers[name] = controller
-        self.__mapper.connect(name, route, controller=name, **kwargs)
+        self._controllers[name] = controller
+        self._mapper.connect(name, route, controller=name, **kwargs)
 
     def getChild(self, name, request):
-        self.__path.append(name)
+        self._path.append(name)
 
         return self
 
     def render_HEAD(self, request):
-        return self.__render('HEAD', request)
+        return self._render('HEAD', request)
 
     def render_GET(self, request):
-        return self.__render('GET', request)
+        return self._render('GET', request)
 
     def render_POST(self, request):
-        return self.__render('POST', request)
+        return self._render('POST', request)
 
     def render_PUT(self, request):
-        return self.__render('PUT', request)
+        return self._render('PUT', request)
 
     def render_DELETE(self, request):
-        return self.__render('DELETE', request)
+        return self._render('DELETE', request)
 
-    def __render(self, method, request):
+    def _render(self, method, request):
         try:
             wsgi_environ = {}
             wsgi_environ['REQUEST_METHOD'] = method
-            wsgi_environ['PATH_INFO'] = '/'.join(self.__path)
+            wsgi_environ['PATH_INFO'] = '/'.join(self._path)
 
-            result = self.__mapper.match(environ=wsgi_environ)
+            result = self._mapper.match(environ=wsgi_environ)
 
             handler = None
 
             if result is not None:
                 controller = result.get('controller', None)
-                controller = self.__controllers.get(controller)
+                controller = self._controllers.get(controller)
 
                 if controller is not None:
                     del result['controller']
@@ -115,7 +115,7 @@ class Dispatcher(Resource):
                         handler = getattr(controller, action, None)
 
         finally:
-            self.__path = ['']
+            self._path = ['']
 
         if handler:
             return handler(request, **result)
